@@ -1,0 +1,20 @@
+﻿@model List<Product> 
+
+
+
+<h1>Все доступные  продукты</h1>
+
+<div class="row mt-5 mb-2">
+    @{
+        foreach (var x in Model)
+        {
+            <div class="col-lg-4">
+                <img class="img-thumbnail" src="~/Images/@x.Image" alt="@x.Name" />
+                <h2>@x.Name</h2>
+                <p content="TJS">Цена:@x.Price c. </p>
+                <p><a class="btn btn-success" asp-controller="Customer" asp-action="Create" asp-route-id="@x.Id">Добавить в корзину</a></p>
+
+            </div>
+        }
+    }
+</div>

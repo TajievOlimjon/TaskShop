@@ -1,0 +1,43 @@
+﻿@model ProductDto
+
+<div class="row">
+    <h3>Добавить нового товара</h3>
+    <form asp-action="Create" asp-controller="Product" method="post" class="form-horizontal" asp-antiforgery="true" enctype="multipart/form-data">
+        <div class="form-group">
+            <label asp-for="Name"><b>Названия</b></label>
+            <div class="col-md-5">
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Price"><b>Цена</b></label>
+            <div class="col-md-5">
+                <input asp-for="Price" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Image"><b>Фото</b></label>
+            <div class="col-md-5">
+                <input asp-for="Image" class="form-control" accept="image/*" type="file" />
+                <span asp-validation-for="Image" ></span>
+            </div>
+        </div>
+        <input asp-for="GetImage" type="hidden" />
+        <div class="form-group">
+            <label asp-for="CategoryId"><b>Категория</b></label>
+            <select class="form-control" name="CategoryId">
+                @foreach (var x in ViewBag.Categories)
+                {
+                    <option value="@x.Id">
+                        @x.Name
+                    </option>
+                }
+            </select>
+            <span asp-validation-for="CategoryId"></span>
+        </div>
+        <input class="btn btn-success" type="submit" value="Добавить" /> 
+        <a asp-action="GetAll" asp-controller="Product" class="btn btn-secondary">Отменить</a>
+    </form>
+</div>

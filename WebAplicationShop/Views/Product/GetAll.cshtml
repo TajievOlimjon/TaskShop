@@ -1,0 +1,45 @@
+﻿@model List<Product>
+
+<h1>Все продукты</h1>
+
+<table class=" table">
+    <a asp-action="Create" asp-controller="Product" class="btn btn-sm btn-success">
+        Добавить
+    </a>
+    <thead>
+        <tr>
+            <th class="col">Названия продукта</th>
+            <th class="col">Цена</th>
+            <th class="col">Категория</th>           
+            <th class="col">Фото</th>
+
+
+
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var x in Model)
+        {
+            <tr>
+                <td>@x.Name</td>
+                <td>@x.Price</td>
+                <td>@x.Category.Name</td>
+                <td><img class="img-thumbnail" src="~/Images/@x.Image" /></td>
+
+                <td>
+                    <a class="btn btn-warning" asp-action="Edit" asp-controller="Product" asp-route-id="@x.Id" id="Edit">
+                        Изменить
+                    </a>
+                </td>
+                <td>
+                    <a class="btn btn-danger" asp-action="Delete" asp-controller="Product" asp-route-id="@x.Id" id="Delete">
+                        Удалить
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+

@@ -71,7 +71,7 @@ namespace WebAplicationShop.Controllers
                     {
                         ProductId = product.Id,
                         ProductName = product.Name,
-                        CustomerId = c.Id,
+                        CustomerId = getId.Id,
                         Price = product.Price,
                         PhoneNumber = customer.PhoneNumber,
                         ProductRange = customer.InstallmentRange,
@@ -84,7 +84,7 @@ namespace WebAplicationShop.Controllers
                     {
                         ProductId = product.Id,
                         ProductName = product.Name,
-                        CustomerId = c.Id,
+                        CustomerId = getId.Id,
                         Price = product.Price,
                         PhoneNumber = customer.PhoneNumber,
                         ProductRange = customer.InstallmentRange,

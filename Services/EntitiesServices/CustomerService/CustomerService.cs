@@ -1,11 +1,5 @@
 ﻿using Domain.Entities;
 using Persistense.Data;
-using Services.EntitiesServices.OrderServices;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services.EntitiesServices.CustomerService
 {

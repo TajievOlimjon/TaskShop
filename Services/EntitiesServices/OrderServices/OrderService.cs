@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
 using Domain.EntitesDto;
 using Domain.Entities;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Persistense.Data;
-using System.Security.Cryptography.X509Certificates;
 using Vonage.Messaging;
 namespace Services.EntitiesServices.OrderServices
 {
@@ -19,7 +16,6 @@ namespace Services.EntitiesServices.OrderServices
             this.mapper = mapper;
             this.context = context;
         }
-
 
 
 
@@ -50,14 +46,13 @@ namespace Services.EntitiesServices.OrderServices
 
         public SendSmsRequest AddSmartfonOrder(OrderDto dto)
         {
-            Order order = GetSmartphoneByInstallments(dto);
-
-            //var mapped = mapper.Map<Order>(order);
-           
-            context.Orders.Add(order);            
+            var instalment = GetSmartphoneByInstallments(dto);
+            dto.SummaInstallmentRange = instalment;
+            var mapped = mapper.Map<Order>(dto);
+            context.Orders.Add(mapped);
             context.SaveChanges(); 
 
-            SendSmsRequest smsRequest = GetSendSmsRequestSmartfon(order);
+            SendSmsRequest smsRequest = GetSendSmsRequestSmartfon(mapped);
             //SendSmsResponse smsResponse = client.SmsClient.SendAnSms(smsRequest);
 
            
@@ -120,7 +115,7 @@ namespace Services.EntitiesServices.OrderServices
                         {
                             To = order.PhoneNumber,
                             From = " Alif ",
-                            Text = $" Здравствуйте вы купили мобильный телефон {order.ProductName} " +
+                            Text = $" Здравствуйте вы купили мобильный телефон {order.Product.Name} " +
                                    $" с рассрочкой {order.ProductRange} месяцев . " +
                                    $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 3} сомонов. " +
                                    $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
@@ -427,101 +422,27 @@ namespace Services.EntitiesServices.OrderServices
             if (sendSmsRequest == null) return new SendSmsRequest();
             return sendSmsRequest;
         }
-        public Order GetSmartphoneByInstallments(OrderDto dto)
+        public double GetSmartphoneByInstallments(OrderDto dto)
         {
-            Order? query = null;
+            double query=0;
 
             if (dto.ProductRange <= 9)
             {
-                query = (from o in context.Orders
-                         where dto.ProductRange <= 9
-                         let r = dto.Price
-                         select new Order
-                         {
-                             ProductId = dto.ProductId,
-                             ProductName = dto.ProductName,
-                             CustomerId = dto.CustomerId,
-                             Price = dto.Price,
-                             PhoneNumber = dto.PhoneNumber,
-                             ProductRange = dto.ProductRange,
-                             OrderCreated = dto.OrderCreated,
-                             SummaInstallmentRange = r
-                         }).FirstOrDefault();
+                query = dto.Price;
                 
             }
-
-
-            if (dto.ProductRange > 9 && dto.ProductRange <= 12)
+            else if (dto.ProductRange > 9 && dto.ProductRange <= 12)
             {
-                query = (from o in context.Orders
-                         where dto.ProductRange == 12
-                         let range = (dto.Price * 3) / 100
-                         let res = dto.Price + range
-                         select new Order
-                         {
-                             ProductId = dto.ProductId,
-                             ProductName = dto.ProductName,
-                             CustomerId = dto.CustomerId,
-                             Price = dto.Price,
-                             PhoneNumber = dto.PhoneNumber,
-                             ProductRange = dto.ProductRange,
-                             OrderCreated = dto.OrderCreated,
-                             SummaInstallmentRange = res
-                         }).FirstOrDefault();
-                //var res = 0;
-                //if (dto.ProductRange.Equals(12))
-                //{
-                //    res = (dto.ProductRange * 3) / 100;
-                //}
-                //query = new Order
-                //{
-                //    ProductId = dto.ProductId,
-                //    ProductName = dto.ProductName,
-                //    CustomerId = dto.CustomerId,
-                //    Price = dto.Price,
-                //    PhoneNumber = dto.PhoneNumber,
-                //    ProductRange = dto.ProductRange,
-                //    OrderCreated = dto.OrderCreated,
-                //    SummaInstallmentRange = res+dto.Price
-                //};
+                query = dto.Price + (dto.Price * 3) / 100;
+               
             }
-            if (dto.ProductRange > 12)
+            else if (dto.ProductRange > 12)
             {
-                 query = (from o in context.Orders
-                         where dto.ProductRange==18
-                         let range = (dto.Price * 6) / 100
-                         let r = dto.Price + range
-                         select new Order
-                         {
-                             ProductId = dto.ProductId,
-                             ProductName = dto.ProductName,
-                             CustomerId = dto.CustomerId,
-                             Price = dto.Price,
-                             PhoneNumber = dto.PhoneNumber,
-                             ProductRange = dto.ProductRange,
-                             OrderCreated = dto.OrderCreated,
-                             SummaInstallmentRange=r
-                         }).FirstOrDefault();
-
+                 query = query = dto.Price + (dto.Price * 6) / 100;
             }
-            if (dto.ProductRange > 18)
+            else if (dto.ProductRange > 18)
             {
-                 query = (from o in context.Orders
-                         where dto.ProductRange == 24
-                         let range = (dto.Price * 9) / 100
-                         let r = dto.Price + range
-                         select new Order
-                         {
-                             ProductId = dto.ProductId,
-                             ProductName = dto.ProductName,
-                             CustomerId = dto.CustomerId,
-                             Price = dto.Price,
-                             PhoneNumber = dto.PhoneNumber,
-                             ProductRange = dto.ProductRange,
-                             OrderCreated = dto.OrderCreated,
-                             SummaInstallmentRange = r
-                         }).FirstOrDefault();
-
+                 query = query = dto.Price + (dto.Price * 9) / 100;
             }
         
             return query;

@@ -1,4 +1,4 @@
-﻿@model ProductDto
+﻿@model UpdateProductDto
 
 <div class="row">
     <h3>Изменить</h3>
@@ -18,13 +18,13 @@
             </div>
         </div>
         <div class="form-group">
-            <label asp-for="Image"><b>Фото</b></label>
+            <label asp-for="Img"><b>Фото</b></label>
             <div class="col-md-5">
-                <input asp-for="Image" class="form-control" accept="image/*" type="file" />
-                <span asp-validation-for="Image"></span>
+                <input asp-for="Img" class="form-control" accept="image/*" type="file" />
+                <span asp-validation-for="Img"></span>
             </div>
         </div>
-        <input asp-for="GetImage" type="hidden" />
+        <input asp-for="Image" type="hidden"/>
         <div class="form-group">
             <label asp-for="CategoryId"><b>Категория</b></label>
             <select class="form-control" name="CategoryId">

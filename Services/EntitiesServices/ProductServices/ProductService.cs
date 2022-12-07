@@ -1,126 +1,99 @@
-﻿using AutoMapper;
-using Domain.EntitesDto;
+﻿
+using Domain.DTOs.ProductDTOs;
 using Domain.Entities;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Persistense.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services.EntitiesServices.ProductServices
 {
     public class ProductService : IProductService
     {
         private readonly AplicationContext _context;
-        private readonly IMapper _mapper;
-        private readonly IWebHostEnvironment _webHostEnvironment;
-        public ProductService(AplicationContext context,IMapper mapper,IWebHostEnvironment webHostEnvironment)
+        public ProductService(AplicationContext context)
         {
-            _mapper = mapper;
             _context = context;
-            _webHostEnvironment = webHostEnvironment;
         }
 
-        public  IEnumerable<Product> GetProduct =>  _context.Products.Include(x=>x.Category).ToList();
+        public IEnumerable<Product> GetProduct => throw new NotImplementedException();
 
-        public async Task<int> AddProduct(ProductDto product)
-        {  
-            var fileName = Guid.NewGuid() + "_" + Path.GetFileName(product.Image.FileName);
-            var path = Path.Combine(_webHostEnvironment.WebRootPath, "Images", fileName);
-            using (var stream = new FileStream(path, FileMode.Create))
-            {
-                await product.Image.CopyToAsync(stream);
-            }
-
-            var mapped = _mapper.Map<Product>(product);
-            mapped.Image = fileName;
-            await _context.Products.AddAsync(mapped);
-            return await _context.SaveChangesAsync();
-        }
-
-        public async Task<int> DeleteProduct(int id)
+        public async Task<int> AddProductAsync(Product product)
         {
-            var product = await _context.Products.FindAsync(id);
-             _context.Products.Remove(product);
-            return await _context.SaveChangesAsync();
+            await _context.AddAsync(product);
+
+            var x = await _context.SaveChangesAsync();
+
+            if (x == 0) return 0;
+            return x;
         }
 
-        public async Task<List<Product>> GetCategoryComputers()
+        public async Task<int> DeleteProductAsync(int id)
         {
-            var query = await (from p in _context.Products
-                               join c in _context.Categories on p.CategoryId equals c.Id
-                               where c.Name.Contains("Компьютер")
-                               select p).ToListAsync();
-            return query;
+            var product =
+                await _context.Products.FindAsync(id);
+
+            if (product == null) return 0;
+
+            _context.Products.Remove(product);
+
+            var x = await _context.SaveChangesAsync();
+
+            if (x == 0) return 0;
+            return x;
         }
 
-        public async Task<List<Product>> GetCategorySmartphones()
+        public async Task<Product> GetProductByIdAsync(int id)
         {
-            var query = await(from p in _context.Products
-                              join c in _context.Categories on p.CategoryId equals c.Id
-                              where c.Name.Contains("Смартфон")
-                              select p).ToListAsync();
-            return query;
-        }
+            var product = 
+                await _context.Products.FindAsync(id);
 
-        public async Task<List<Product>> GetCategoryTelevisions()
-        {
-            var query = await(from p in _context.Products
-                              join c in _context.Categories on p.CategoryId equals c.Id
-                              where c.Name.Contains("Телевизор")
-                              select p).ToListAsync();
-            return query;
-        }
+            if (product == null) return null;
 
-        public async Task<ProductDto> GetProductById(int id)
-        {
-            var product = await (from p in _context.Products
-                                 select new ProductDto
-                                 {
-                                     Id=p.Id,
-                                     Name=p.Name,
-                                     Price=p.Price,
-                                     GetImage=p.Image,
-                                     CategoryId=p.CategoryId
-                                 }).FirstOrDefaultAsync();
             return product;
         }
 
-        public async Task<List<Product>> GetProducts()
+        public async Task<List<GetProductByJoinCategory>> GetProductsByJoinCategories()
         {
-            return await _context.Products.Include(x=>x.Category).ToListAsync();
+            var items =
+                       await(from p in _context.Products
+                       join c in _context.Categories on p.CategoryId equals c.Id
+                       select new GetProductByJoinCategory
+                       {
+                           Id = p.Id,
+                           Name = p.Name,
+                           Price = p.Price,
+                           Image=p.Image,
+                           CategoryName = c.Name,
+                           Description=c.Description
+                       }).ToListAsync();
+            return items;
         }
 
-        public async Task<int> UpdateProduct(ProductDto product)
+        public async Task<List<Product>> GetProductsAsync()
         {
-            if (product.Image != null)
-            {
-                var fileName = Guid.NewGuid() + "_" + Path.GetFileName(product.Image.FileName);
-                var path = Path.Combine(_webHostEnvironment.WebRootPath, "Images", fileName);
-                using (var stream = new FileStream(path, FileMode.Create))
-                {
-                    await product.Image.CopyToAsync(stream);
-                }
-                var p = await _context.Products.FindAsync(product.Id);
-                p.Name = product.Name;
-                p.Price = product.Price;
-                p.Image = fileName;
-                p.CategoryId = product.CategoryId;
-            }
-            else
-            {
-                var p = await _context.Products.FindAsync(product.Id);
-                p.Name = product.Name;
-                p.Price = product.Price;
-                p.CategoryId = product.CategoryId;
-               
+            var products =
+                         await _context.Products
+                               .Include(x => x.Category)
+                               .ToListAsync();
 
-            }
-            return await _context.SaveChangesAsync();
+            return products;
+        }
+
+
+        public async Task<int> UpdateProductAsync(Product product)
+        {
+            var p = await _context.Products.FindAsync(product.Id);
+
+            if (p == null) return 0;
+
+            p.Name = product.Name;
+            p.Price = product.Price;
+            p.Image = product.Image;
+            p.CategoryId = product.CategoryId;
+
+            var x = await _context.SaveChangesAsync();
+
+            if (x == 0) return 0;
+            return x;
         }
     }
 }

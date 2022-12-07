@@ -1,4 +1,4 @@
-﻿@model List<Product>
+﻿@model List<GetProductByJoinCategory>
 
 <h1>Все продукты</h1>
 
@@ -10,7 +10,8 @@
         <tr>
             <th class="col">Названия продукта</th>
             <th class="col">Цена</th>
-            <th class="col">Категория</th>           
+            <th class="col">Категория</th> 
+            <th class="col">Описания</th>
             <th class="col">Фото</th>
 
 
@@ -24,7 +25,8 @@
             <tr>
                 <td>@x.Name</td>
                 <td>@x.Price</td>
-                <td>@x.Category.Name</td>
+                <td>@x.CategoryName</td>
+                <td>@x.Description</td>
                 <td><img class="img-thumbnail" src="~/Images/@x.Image" /></td>
 
                 <td>

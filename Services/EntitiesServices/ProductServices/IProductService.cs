@@ -1,4 +1,5 @@
-﻿using Domain.EntitesDto;
+﻿using Domain.DTOs.ProductDTOs;
+using Domain.EntitesDto;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,16 +11,12 @@ namespace Services.EntitiesServices.ProductServices
 {
     public  interface IProductService
     {
-        Task<List<Product>> GetProducts();
-        Task<List<Product>> GetCategorySmartphones();
-        Task<List<Product>> GetCategoryComputers();
-        Task<List<Product>> GetCategoryTelevisions();
-        Task<ProductDto> GetProductById(int id);
-        Task<int> AddProduct(ProductDto product);
-        Task<int> UpdateProduct(ProductDto product);
-        Task<int> DeleteProduct(int id);
+        Task<List<Product>> GetProductsAsync();
+        Task<Product> GetProductByIdAsync(int id);
+        Task<int> AddProductAsync(Product product);
+        Task<int> UpdateProductAsync(Product product);
+        Task<int> DeleteProductAsync(int id);
         IEnumerable<Product> GetProduct { get; }
-
-
+        Task<List<GetProductByJoinCategory>> GetProductsByJoinCategories();
     }
 }

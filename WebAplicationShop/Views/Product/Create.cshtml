@@ -1,4 +1,4 @@
-﻿@model ProductDto
+﻿@model CreateProductDto
 
 <div class="row">
     <h3>Добавить нового товара</h3>
@@ -24,7 +24,6 @@
                 <span asp-validation-for="Image" ></span>
             </div>
         </div>
-        <input asp-for="GetImage" type="hidden" />
         <div class="form-group">
             <label asp-for="CategoryId"><b>Категория</b></label>
             <select class="form-control" name="CategoryId">

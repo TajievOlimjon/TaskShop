@@ -16,6 +16,8 @@ namespace Domain.Entities
         [Required]
         public int Range { get; set; }
         [Required]
+        public decimal SumInstallment { get; set; }
+        [Required]
         public string CartId { get; set; }
         public Product? Product { get; set; }
     }

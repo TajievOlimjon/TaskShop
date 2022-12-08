@@ -16,7 +16,7 @@ namespace Services.EntitiesServices.ProductServices
         Task<int> AddProductAsync(Product product);
         Task<int> UpdateProductAsync(Product product);
         Task<int> DeleteProductAsync(int id);
-        IEnumerable<Product> GetProduct { get; }
+        Task<Product> GetCategoryProductById(int id);
         Task<List<GetProductByJoinCategory>> GetProductsByJoinCategories();
     }
 }

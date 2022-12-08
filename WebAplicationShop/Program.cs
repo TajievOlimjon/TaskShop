@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 string connection = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AplicationContext>(opt => opt.UseNpgsql(connection));
+builder.Services.AddDbContext<ApplicationContext>(opt => opt.UseNpgsql(connection));
 
 builder.Services.AddTransient<IProductService,ProductService>();
 builder.Services.AddTransient<ICategoryService, CategoryService>();

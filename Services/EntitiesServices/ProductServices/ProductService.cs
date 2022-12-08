@@ -8,8 +8,8 @@ namespace Services.EntitiesServices.ProductServices
 {
     public class ProductService : IProductService
     {
-        private readonly AplicationContext _context;
-        public ProductService(AplicationContext context)
+        private readonly ApplicationContext _context;
+        public ProductService(ApplicationContext context)
         {
             _context = context;
         }
@@ -94,6 +94,16 @@ namespace Services.EntitiesServices.ProductServices
 
             if (x == 0) return 0;
             return x;
+        }
+
+        public async Task<Product> GetCategoryProductById(int id)
+        {
+            var item = await _context.Products
+                             .Include(x => x.Category)
+                             .Where(x => x.Id.Equals(id))
+                             .FirstOrDefaultAsync();
+
+            return item;
         }
     }
 }

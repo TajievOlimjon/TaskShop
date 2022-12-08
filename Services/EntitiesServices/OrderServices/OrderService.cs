@@ -1,561 +1,63 @@
-﻿using AutoMapper;
-using Domain.EntitesDto;
+﻿
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistense.Data;
-using Vonage.Messaging;
+using Services.EntitiesServices.CartServices;
+using Services.EntitiesServices.CustomerService;
+
 namespace Services.EntitiesServices.OrderServices
 {
     public class OrderService : IOrderService
     {
-        private readonly IMapper mapper;
-        private readonly AplicationContext context;
+        private readonly ICustomerService _customerService;
+        private readonly ApplicationContext _context;
+        private readonly ICartService _cartService;
 
-        public OrderService(IMapper mapper, AplicationContext context)
+        public OrderService(ICustomerService service , ApplicationContext context,ICartService cartService)
         {
-            this.mapper = mapper;
-            this.context = context;
+            _customerService=service;
+            _context = context;
+            _cartService = cartService;
         }
 
-
-
-        public async Task<List<Orders>> GetOrders()
+        public async Task<int> AddToOrder(Customer customer)
         {
-            var query = await (from orders in context.Orders
-                               join product in context.Products on orders.ProductId equals product.Id
-                               join category in context.Categories on product.CategoryId equals category.Id
-                               join customer in context.Customers on orders.CustomerId equals customer.Id
-                               orderby orders.Id descending
-                               select new Orders
-                               {
-                                   ProductName=orders.ProductName,
-                                   CategoryName=category.Name,
-                                   Price=orders.Price,
-                                   SummaInstallmentRange=orders.SummaInstallmentRange,
-                                   ProductRange=orders.ProductRange,
-                                   OrderCreated=orders.OrderCreated,
-                                   CustomerName=customer.FirstName,
-                                   LastName=customer.LastName,
-                                   Email=customer.Email,
-                                   Phone=customer.PhoneNumber
+            customer.OrderDate = DateTimeOffset.UtcNow;
+            await _customerService.AddCustomer(customer);
 
-                               }).ToListAsync();
-            return query;
-        }
+            var entity = await _customerService.GetCustomerByEmail(customer.Email);
 
+            var cartItems = await _cartService.GetAllCarts();
 
-        public SendSmsRequest AddSmartfonOrder(OrderDto dto)
-        {
-            var instalment = GetSmartphoneByInstallments(dto);
-            dto.SummaInstallmentRange = instalment;
-            var mapped = mapper.Map<Order>(dto);
-            context.Orders.Add(mapped);
-            context.SaveChanges(); 
-
-            SendSmsRequest smsRequest = GetSendSmsRequestSmartfon(mapped);
-            //SendSmsResponse smsResponse = client.SmsClient.SendAnSms(smsRequest);
-
-           
-            if (smsRequest == null)
+            foreach (var item in cartItems)
             {
-                return null;//new SendSmsResponse();
-            }
-            return smsRequest;
-
-        }       
-        public SendSmsRequest AddKomputerOrder(OrderDto dto)
-        {
-            OrderDto order= GetComputerByInstallments(dto);
-
-            var mapped = mapper.Map<Order>(order);
-            context.Orders.Add(mapped);
-            context.SaveChanges();
-
-            SendSmsRequest smsRequest = GetSendSmsRequestComputer(mapped);
-            //SendSmsResponse smsResponse = client.SmsClient.SendAnSms(smsRequest);
-
-
-            if (smsRequest == null)
-            {
-                return null;//new SendSmsResponse();
-            }
-            return smsRequest;
-        }
-        public SendSmsRequest AddTvOrder(OrderDto dto)
-        {
-            OrderDto order =GetTvByInstallments(dto);
-
-            var mapped = mapper.Map<Order>(order);
-            context.Orders.Add(mapped);
-            context.SaveChanges();
-
-            SendSmsRequest smsRequest = GetSendSmsRequestTv(mapped);
-            //SendSmsResponse smsResponse = client.SmsClient.SendAnSms(smsRequest);
-
-
-            if (smsRequest == null)
-            {
-                return null;//new SendSmsResponse();
-            }
-            return smsRequest;
-        }
-
-        public SendSmsRequest GetSendSmsRequestSmartfon(Order order)
-        {
-            SendSmsRequest? sendSmsRequest = null;
-            try
-            {
-                if (order.ProductRange <= 9)
+                if (!item.Equals(null))
                 {
-                    SendSmsRequest? smsRequest = null;
-
-                    if (order.ProductRange.Equals(3))
+                    var order = new Order
                     {
-                        smsRequest = new SendSmsRequest
-                        {
-                            To = order.PhoneNumber,
-                            From = " Alif ",
-                            Text = $" Здравствуйте вы купили мобильный телефон {order.Product.Name} " +
-                                   $" с рассрочкой {order.ProductRange} месяцев . " +
-                                   $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 3} сомонов. " +
-                                   $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                   $" С уважением Алиф Бонк   "
-                        };
-
-                    }
-                    if (order.ProductRange.Equals(6))
-                    {
-                        smsRequest = new SendSmsRequest
-                        {
-                            To = order.PhoneNumber,
-                            From = " Alif ",
-                            Text = $" Здравствуйте вы купили мобильный телефон {order.ProductName} " +
-                                $" с рассрочкой {order.ProductRange} месяцев . " +
-                                $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 6} сомонов. " +
-                                $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                $" С уважением Алиф Бонк   "
-                        };
-
-
-                    }
-                    if (order.ProductRange.Equals(9))
-                    {
-                        smsRequest = new SendSmsRequest
-                        {
-                            To = order.PhoneNumber,
-                            From = " Alif ",
-                            Text = $" Здравствуйте вы купили мобильный телефон {order.ProductName} " +
-                                $" с рассрочкой {order.ProductRange} месяцев . " +
-                                $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 9} сомонов. " +
-                                $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                $" С уважением Алиф Бонк   "
-                        };
-
-
-                    }
-
-                    sendSmsRequest = smsRequest;
-                };
-
-
-
-                if (order.ProductRange > 9 && order.ProductRange <= 12)
-                {
-                    sendSmsRequest = new SendSmsRequest
-                    {
-                        To = order.PhoneNumber,
-                        From = "Alif",
-                        Text = $" Здравствуйте вы купили мобильный телефон {order.ProductName} " +
-                                $" с рассрочкой {order.ProductRange} месяцев и вам добавляется 3 % от обшей суммы. " +
-                                $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 12} сомонов. " +
-                                $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                $" С уважением Алиф Бонк   "
+                        CustomerId = entity.Id,
+                        CartId = item.Id,
+                        OrderDate = DateTimeOffset.UtcNow
                     };
+                    await _context.Orders.AddRangeAsync(order);
                 }
-                if (order.ProductRange > 12 && order.ProductRange <= 18)
-                {
-                    sendSmsRequest = new SendSmsRequest
-                    {
-                        To = order.PhoneNumber,
-                        From = " Alif ",
-                        Text = $" Здравствуйте вы купили мобильный телефон {order.ProductName} " +
-                                $" с рассрочкой {order.ProductRange} месяцев и вам добавляется 6 % от обшей суммы. " +
-                                $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 18} сомонов. " +
-                                $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                $" С уважением Алиф Бонк   "
-                    };
-                }
-                if (order.ProductRange > 18 && order.ProductRange <= 24)
-                {
-                    sendSmsRequest = new SendSmsRequest
-                    {
-                        To = order.PhoneNumber,
-                        From = " Alif ",
-                        Text = $" Здравствуйте вы купили мобильный телефон {order.ProductName} " +
-                                $" с рассрочкой {order.ProductRange} месяцев и вам добавляется 9 % от обшей суммы. " +
-                                $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 24} сомонов. " +
-                                $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                $" С уважением Алиф Бонк   "
-                    };
-                }
-
-
             }
+            var x = await _context.SaveChangesAsync();
 
-            catch (VonageSmsResponseException ex)
-            {
-                ex.Message.ToString();
-            }
+            if (x != 0) return x;
 
-            if (sendSmsRequest == null) return new SendSmsRequest();
-            return sendSmsRequest;
+            await _customerService.DeleteCustomer(entity.Id);
+            return 0;
         }
-        public SendSmsRequest GetSendSmsRequestComputer(Order order)
+
+        public async Task<List<Order>> GetOrders()
         {
-            SendSmsRequest? sendSmsRequest = null;
-            try
-            {
-                if (order.ProductRange <= 12)
-                {
-                    SendSmsRequest? smsRequest = null;
-                    if (order.ProductRange.Equals(3))
-                    {
-                        smsRequest = new SendSmsRequest
-                        {
-                            To = order.PhoneNumber,
-                            From = " Alif ",
-                            Text = $" Здравствуйте вы купили компьютер  {order.ProductName} " +
-                                   $" с рассрочкой {order.ProductRange} месяцев . " +
-                                   $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 3} сомонов. " +
-                                   $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                   $" С уважением Алиф Бонк   "
-                        };
-
-                    }
-                    if (order.ProductRange.Equals(6))
-                    {
-                        smsRequest = new SendSmsRequest
-                        {
-                            To = order.PhoneNumber,
-                            From = " Alif ",
-                            Text = $" Здравствуйте вы купили компьютер {order.ProductName} " +
-                                   $" с рассрочкой {order.ProductRange} месяцев . " +
-                                   $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 6} сомонов. " +
-                                   $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                   $" С уважением Алиф Бонк   "
-                        };
-
-
-                    }
-                    if (order.ProductRange.Equals(9))
-                    {
-                        smsRequest = new SendSmsRequest
-                        {
-                            To = order.PhoneNumber,
-                            From = " Alif ",
-                            Text = $" Здравствуйте вы купили компьютер {order.ProductName} " +
-                                $" с рассрочкой {order.ProductRange} месяцев . " +
-                                $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 9} сомонов. " +
-                                $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                $" С уважением Алиф Бонк   "
-                        };
-
-                        if (order.ProductRange.Equals(9))
-                        {
-                            smsRequest = new SendSmsRequest
-                            {
-                                To = order.PhoneNumber,
-                                From = "Alif",
-                                Text = $" Здравствуйте вы купили компьютер {order.ProductName} " +
-                                        $" с рассрочкой {order.ProductRange} месяцев . " +
-                                        $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 12} сомонов. " +
-                                        $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                        $" С уважением Алиф Бонк   "
-                            };
-                        }
-                    }
-                    sendSmsRequest = smsRequest;
-                };
-
-                if (order.ProductRange > 12 && order.ProductRange <= 18)
-                {
-                    sendSmsRequest = new SendSmsRequest
-                    {
-                        To = order.PhoneNumber,
-                        From = " Alif ",
-                        Text = $" Здравствуйте вы купили компьютер {order.ProductName} " +
-                                $" с рассрочкой {order.ProductRange} месяцев и вам добавляется 4 % от обшей суммы. " +
-                                $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 18} сомонов. " +
-                                $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                $" С уважением Алиф Бонк   "
-                    };
-                }
-                if (order.ProductRange > 18 && order.ProductRange <= 24)
-                {
-                    sendSmsRequest = new SendSmsRequest
-                    {
-                        To = order.PhoneNumber,
-                        From = " Alif ",
-                        Text = $" Здравствуйте вы купили компьютер {order.ProductName} " +
-                                $" с рассрочкой {order.ProductRange} месяцев и вам добавляется 8 % от обшей суммы. " +
-                                $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 24} сомонов. " +
-                                $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                $" С уважением Алиф Бонк   "
-                    };
-                }
-
-
-            }
-
-            catch (VonageSmsResponseException ex)
-            {
-                ex.Message.ToString();
-            }
-
-            if (sendSmsRequest == null) return new SendSmsRequest();
-            return sendSmsRequest;
+            var orders = await _context.Orders
+                        .Include(x => x.Cart)
+                        .Include(c => c.Customer)
+                        .ToListAsync();
+           return orders;
         }
-        public SendSmsRequest GetSendSmsRequestTv(Order order)
-        {
-            SendSmsRequest? sendSmsRequest = null;
-            try
-            {
-                if (order.ProductRange <= 12)
-                {
-                    SendSmsRequest? smsRequest = null;
-                    if (order.ProductRange.Equals(3))
-                    {
-                        smsRequest = new SendSmsRequest
-                        {
-                            To = order.PhoneNumber,
-                            From = " Alif ",
-                            Text = $" Здравствуйте вы купили телевизор  {order.ProductName} " +
-                                   $" с рассрочкой {order.ProductRange} месяцев . " +
-                                   $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 3} сомонов. " +
-                                   $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                   $" С уважением Алиф Бонк   "
-                        };
-
-                    }
-                    if (order.ProductRange.Equals(6))
-                    {
-                        smsRequest = new SendSmsRequest
-                        {
-                            To = order.PhoneNumber,
-                            From = " Alif ",
-                            Text = $" Здравствуйте вы купили телевизор {order.ProductName} " +
-                                   $" с рассрочкой {order.ProductRange} месяцев . " +
-                                   $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 6} сомонов. " +
-                                   $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                   $" С уважением Алиф Бонк   "
-                        };
-
-
-                    }
-                    if (order.ProductRange.Equals(9))
-                    {
-                        smsRequest = new SendSmsRequest
-                        {
-                            To = order.PhoneNumber,
-                            From = " Alif ",
-                            Text = $" Здравствуйте вы купили телевизор {order.ProductName} " +
-                                $" с рассрочкой {order.ProductRange} месяцев . " +
-                                $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 9} сомонов. " +
-                                $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                $" С уважением Алиф Бонк   "
-                        };
-
-                        if (order.ProductRange.Equals(9))
-                        {
-                            smsRequest = new SendSmsRequest
-                            {
-                                To = order.PhoneNumber,
-                                From = "Alif",
-                                Text = $" Здравствуйте вы купили телевизор {order.ProductName} " +
-                                        $" с рассрочкой {order.ProductRange} месяцев . " +
-                                        $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 12} сомонов. " +
-                                        $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                        $" С уважением Алиф Бонк   "
-                            };
-                        }
-                        if (order.ProductRange.Equals(18))
-                        {
-
-                            smsRequest = new SendSmsRequest
-                            {
-                                To = order.PhoneNumber,
-                                From = " Alif ",
-                                Text = $" Здравствуйте вы купили телевизор {order.ProductName} " +
-                                        $" с рассрочкой {order.ProductRange} месяцев . " +
-                                        $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 18} сомонов. " +
-                                        $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                        $" С уважением Алиф Бонк   "
-                            };
-                        }
-                    }
-                    sendSmsRequest = smsRequest;
-                };
-
-
-                if (order.ProductRange.Equals(24))
-                {
-                    sendSmsRequest = new SendSmsRequest
-                    {
-                        To = order.PhoneNumber,
-                        From = " Alif ",
-                        Text = $" Здравствуйте вы купили телевизор {order.ProductName} " +
-                                $" с рассрочкой {order.ProductRange} месяцев и вам добавляется 5 процент от обшей суммы. " +
-                                $" Вы дольжны платить каждый месяц {(Double)order.SummaInstallmentRange / 24} сомонов. " +
-                                $" Обшая сумма составляет {order.SummaInstallmentRange} сомон. " +
-                                $" С уважением Алиф Бонк   "
-                    };
-                }
-
-
-            }
-
-            catch (VonageSmsResponseException ex)
-            {
-                ex.Message.ToString();
-            }
-
-            if (sendSmsRequest == null) return new SendSmsRequest();
-            return sendSmsRequest;
-        }
-        public double GetSmartphoneByInstallments(OrderDto dto)
-        {
-            double query=0;
-
-            if (dto.ProductRange <= 9)
-            {
-                query = dto.Price;
-                
-            }
-            else if (dto.ProductRange > 9 && dto.ProductRange <= 12)
-            {
-                query = dto.Price + (dto.Price * 3) / 100;
-               
-            }
-            else if (dto.ProductRange > 12)
-            {
-                 query = query = dto.Price + (dto.Price * 6) / 100;
-            }
-            else if (dto.ProductRange > 18)
-            {
-                 query = query = dto.Price + (dto.Price * 9) / 100;
-            }
-        
-            return query;
-        }
-        public OrderDto GetComputerByInstallments(OrderDto dto)
-        {
-
-            OrderDto? query = null;
-            if (dto.ProductRange<=12)
-            {
-
-                query = (from o in context.Orders
-                         where dto.ProductRange<=12
-                         let r = dto.Price
-                         select new OrderDto
-                         {
-                             ProductId = dto.ProductId,
-                             ProductName = dto.ProductName,
-                             CustomerId = dto.CustomerId,
-                             Price = dto.Price,
-                             PhoneNumber = dto.PhoneNumber,
-                             ProductRange = dto.ProductRange,
-                             OrderCreated = dto.OrderCreated,
-                             SummaInstallmentRange = r
-                         }).FirstOrDefault();
-
-
-            }
-            if (dto.ProductRange >12 )
-            {
-
-                      query= (from o in context.Orders
-                              where  dto.ProductRange==18
-                              let range = (dto.Price * 4) / 100
-                              let r = dto.Price + range
-                              select new OrderDto
-                              {
-                                  ProductId = dto.ProductId,
-                                  ProductName = dto.ProductName,
-                                  CustomerId = dto.CustomerId,
-                                  Price = dto.Price,
-                                  PhoneNumber = dto.PhoneNumber,
-                                  ProductRange = dto.ProductRange,
-                                  OrderCreated = dto.OrderCreated,
-                                  SummaInstallmentRange = r
-                              }).FirstOrDefault();
-                
-
-            }
-            if (dto.ProductRange > 18)
-            {
-                query = (from o in context.Orders
-                         where dto.ProductRange==24
-                         let range = (dto.Price * 8) / 100
-                         let r = dto.Price + range
-                         select new OrderDto
-                         {
-                             ProductId = dto.ProductId,
-                             ProductName = dto.ProductName,
-                             CustomerId = dto.CustomerId,
-                             Price = dto.Price,
-                             PhoneNumber = dto.PhoneNumber,
-                             ProductRange = dto.ProductRange,
-                             OrderCreated = dto.OrderCreated,
-                             SummaInstallmentRange = r
-                         }).FirstOrDefault();
-            }
-            return query;
-        }
-        public OrderDto GetTvByInstallments(OrderDto dto)
-        {
-            OrderDto? query = null;
-          
-            if (dto.ProductRange<=18)
-            {
-                query = (from o in context.Orders
-                         where dto.ProductRange<=18
-                         let r = dto.Price
-                         select new OrderDto
-                         {
-                             ProductId = dto.ProductId,
-                             ProductName = dto.ProductName,
-                             CustomerId = dto.CustomerId,
-                             Price = dto.Price,
-                             PhoneNumber = dto.PhoneNumber,
-                             ProductRange = dto.ProductRange,
-                             OrderCreated = dto.OrderCreated,
-                             SummaInstallmentRange = r
-                         }).FirstOrDefault();
-
-            }
-            if (dto.ProductRange>18) {
-                 query = (from o in context.Orders
-                          where dto.ProductRange==24
-                          let range = (dto.Price * 5) / 100
-                          let r = dto.Price + range
-                          select new OrderDto
-                          {
-                              ProductId = dto.ProductId,
-                              ProductName = dto.ProductName,
-                              CustomerId = dto.CustomerId,
-                              Price = dto.Price,
-                              PhoneNumber = dto.PhoneNumber,
-                              ProductRange = dto.ProductRange,
-                              OrderCreated = dto.OrderCreated,
-                              SummaInstallmentRange = r
-                          }).FirstOrDefault();
-            
-            }
-            return query;
-        }
-
     }
 
-      
 }

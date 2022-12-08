@@ -29,6 +29,7 @@ namespace Domain.Entities
 
         [Display(Name = "Пол")]
         public Gender Gender { get; set; }
+        public DateTimeOffset OrderDate { get; set; }
 
         /*[Display(Name = "Диапазон рассрочки: 3-6-9-12-18-24 месяцев." +
             " Смартфон: рассрочка до 9 месяцев бе каких либо % \n" +

@@ -1,11 +1,10 @@
-﻿using Domain;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Persistense.Configurations.CategoryConfigurations;
+using System.Reflection;
 
 namespace Persistense.Data
 {
-    public  class ApplicationContext:DbContext
+    public class ApplicationContext : DbContext
     {
         public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options)
         {
@@ -14,7 +13,8 @@ namespace Persistense.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfiguration(new CategoryConfiguration());
+            /*modelBuilder.ApplyConfiguration(new CategoryConfiguration());*/
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
             base.OnModelCreating(modelBuilder);
             
         }

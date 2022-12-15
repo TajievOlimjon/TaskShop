@@ -1,0 +1,43 @@
+﻿@model Product
+
+<div class="row">
+    <h3>Добавления товара в корзину</h3>
+    @if(Model.Category.Name.Equals("ff")){
+        <p>Диапазон рассрочки: 3-6-9-12-18-24 месяцев.<br/>рассрочка до 9 месяцев бе каких либо %</p>
+    }
+    else if (Model.Category.Name.Equals("ff"))
+    {
+
+    }
+    else if (Model.Category.Name.Equals("ff"))
+    {
+
+    }
+    
+    <form asp-action="AddToCart" asp-controller="Cart" method="post" class="form-horizontal" asp-antiforgery="true" enctype="multipart/form-data">
+        <input asp-for="Id" type="hidden" />
+
+        <div class="form-group">
+            <label asp-for="Name">Названия: </label>
+            <b>@Model.Name</b>
+        </div>
+        <div class="form-group">
+            <label asp-for="Price">Цена: </label>
+            <b>@Model.Price</b>
+        </div>
+        <div class="form-group">
+            <label >Введите диапазон рассрочки  покупаемого товарова ?</label>
+            @{
+                int range = 0;
+            
+            <div for="range"  class="col-md-5">
+                <input type="text" data="range" value="range" class="form-control" />
+                <span asp-validation="range" class="text-danger"></span>
+            </div>
+             }
+        </div>
+        <input class="btn btn-outline-success" type="submit" value="Добавить" />
+        <a asp-action="Index" asp-controller="Product"  class="btn btn-secondary">Брать всё</a>
+    </form>
+</div>
+

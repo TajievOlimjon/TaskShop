@@ -1,8 +1,4 @@
-﻿using Domain.DTOs.ProductDTOs;
-using Domain.Entities;
-using Microsoft.AspNetCore.Mvc;
-using Services.EntitiesServices.CategoryServices;
-using Services.EntitiesServices.FileServices;
+﻿using Microsoft.AspNetCore.Mvc;
 using Services.EntitiesServices.ProductServices;
 
 namespace WebAplicationShop.Controllers
@@ -10,146 +6,30 @@ namespace WebAplicationShop.Controllers
     public class ProductController : Controller
     {
         private readonly IProductService _productService;
-        private readonly ICategoryService _categoryService;
-        private readonly IFileService _fileService;
-        public ProductController(IProductService productService,ICategoryService categoryService,IFileService service)
+        public ProductController(IProductService productService)
         {
             _productService = productService;
-            _categoryService = categoryService;
-            _fileService = service;
         }
+
         [HttpGet]
         public async Task<ActionResult> Index()
         {
-            var products = 
-                await _productService.GetProductsAsync();
-
-            var items = products.Select(x => new GetListProductDtos
-            {  
-                Id=x.Id,
-                Name=x.Name,
-                Price=x.Price,
-                CategoryId=x.CategoryId,
-                Image=x.Image
-            }).ToList();
-            return View(items);
-        }
-
-        public async Task<ActionResult> GetAll()
-        {
-            var products =
-               await _productService.GetProductsByJoinCategories();
-            
+            var products = await _productService.GetProductsByJoinCategories();
+       
+          /* var items =products.Join(_categoryService.GetCategories,
+                                   product => product.CategoryId,
+                                   category => category.Id,
+                                   (product, category)
+                                    => new GetProductsByJoinCategories
+                                    {
+                                        Id = product.Id,
+                                        Name = product.Name,
+                                        Price = product.Price,
+                                        Image = product.Image,
+                                        CategoryName = category.Name,
+                                        Description = category.Description
+                                    }).ToListAsync();*/
             return View(products);
-        }
-
-
-
-
-
-        // GET: ProductController/Create
-        public async Task<IActionResult> Create()
-        {
-            ViewBag.Categories = await _categoryService.GetCategories();
-
-            return View(new CreateProductDto());
-        }
-
-        // POST: ProductController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateProductDto  dto)
-        {
-            ViewBag.Categories = await _categoryService.GetCategories();
-
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    var product = new Product
-                    {
-                        Name = dto.Name,
-                        Price = dto.Price,
-                        CategoryId = dto.CategoryId,
-                        Image = _fileService.AddFile(dto.Image)
-                    };
-                    await _productService.AddProductAsync(product);
-                    return RedirectToAction(nameof(GetAll));
-                }
-                return View(dto);
-            }
-            catch(Exception ex)
-            {
-                return View(ex.Message);
-            }
-        }
-
-        // GET: ProductController/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            ViewBag.Categories= 
-                await _categoryService.GetCategories();
-
-            var p =
-                await _productService.GetProductByIdAsync(id);
-
-            var item = new UpdateProductDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Price = p.Price,
-                CategoryId = p.CategoryId,
-                Image = p.Image
-            };
-            return View(item);
-        }
-
-        // POST: ProductController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(UpdateProductDto dto)
-        {
-            ViewBag.Categories = 
-                await _categoryService.GetCategories();
-
-            string imgPath="";
-
-            if (dto.Img != null)
-            {
-                imgPath = _fileService.UpdateFile(dto.Img);
-            }
-            else
-            {
-                imgPath = dto.Image;
-            }
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    var product = new Product
-                    {
-                        Name = dto.Name,
-                        Price = dto.Price,
-                        CategoryId = dto.CategoryId,
-                        Image = imgPath
-                    };
-
-                    await _productService.UpdateProductAsync(product);
-                    return RedirectToAction(nameof(GetAll));
-                }
-                return View(dto);
-            }
-            catch (Exception ex)
-            {
-                return View(ex.Message);
-            }
-        }
-
-        // GET: ProductController/Delete/5
-        public async Task<IActionResult> Delete(int id)
-        {
-            var p = await _productService.DeleteProductAsync(id);
-            return RedirectToAction("GetAll");
         }
       
     }

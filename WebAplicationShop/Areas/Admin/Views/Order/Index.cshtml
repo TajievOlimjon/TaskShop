@@ -1,0 +1,43 @@
+﻿@model List<Order>
+
+<h1>Все рассрочки</h1>
+
+<table class=" table">
+    <thead>
+        <tr>
+            <th class="col">Названия продукта</th>
+            <th class="col">Категория</th>
+            <th class="col">Цена</th>
+            <th class="col">Диапазон рассрочки</th>
+            <th class="col">Дата заказа</th>
+            <th class="col">Обшая сумма от рассрочки</th>
+            <th class="col">Имя клиента</th>
+            <th class="col">Фамилия</th>
+            <th class="col">Электронная почта</th>
+            <th class="col">Телефон</th>
+
+
+
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var x in Model)
+        {
+            <tr>
+              @*  <td>@x.ProductName</td>
+                <td>@x.CategoryName</td>
+                <td>@x.Price</td>
+                <td>@x.ProductRange</td>
+                <td>@x.OrderCreated</td>
+                <td>@x.SummaInstallmentRange</td>
+                <td>@x.CustomerName</td>
+                <td>@x.LastName</td>
+                <td>@x.Email</td>
+                <td>@x.Phone</td>*@
+            </tr>
+        }
+    </tbody>
+</table>
+
+

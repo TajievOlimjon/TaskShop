@@ -1,0 +1,33 @@
+﻿@model List<GetProductsByJoinCategories> 
+
+<h1>Все рассрочки</h1>
+
+<table class=" table">
+    <thead>
+        <tr>
+            <th class="col">Названия</th>
+            <th class="col">Цена</th>
+            <th class="col">Категория</th>
+            <th class="col">Описания</th>
+            <th class="col">Фото</th>
+
+
+
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var x in Model)
+        {
+            <tr>
+                <td>@x.Name</td>
+                <td>@x.Price</td>
+                <td>@x.CategoryName</td>
+                <td>@x.Description</td>
+                <td>@x.Image</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+

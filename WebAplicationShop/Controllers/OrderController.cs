@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Services.EntitiesServices.OrderServices;
 
@@ -12,13 +12,29 @@ namespace WebAplicationShop.Controllers
         {
                _orderService = orderService;
         }
-        // GET: OrderController
-        public async Task<IActionResult> Index()
+        
+        [HttpGet]
+        public IActionResult AddToOrder()
         {
-            var list = await _orderService.GetOrders();
-            return View(list);
+            return View(new Customer());
         }
 
-      
+        [HttpPost]
+        public async Task<IActionResult> AddToOrder(Customer customer)
+        {
+            if (ModelState.IsValid)
+            {
+                await _orderService.AddToOrder(customer);
+
+                return RedirectToAction(nameof(Result));
+            }
+
+            return View(customer);
+        }
+        [HttpPost]
+        public IActionResult Result()
+        {
+            return View();
+        }
     }
 }

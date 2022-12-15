@@ -1,29 +1,40 @@
-
-
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Persistense.Data;
+using Services.EntitiesServices.CartServices;
 using Services.EntitiesServices.CategoryServices;
 using Services.EntitiesServices.CustomerService;
 using Services.EntitiesServices.OrderServices;
 using Services.EntitiesServices.ProductServices;
-using Services.MapServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-string connection = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationContext>(opt => opt.UseNpgsql(connection));
+builder.Services.AddDbContext<ApplicationContext>(option =>
+          option.UseNpgsql(
+              builder.Configuration.GetConnectionString("DefaultConnection")
+              ));
 
-builder.Services.AddTransient<IProductService,ProductService>();
-builder.Services.AddTransient<ICategoryService, CategoryService>();
-builder.Services.AddTransient<IOrderService,OrderService>();
-builder.Services.AddTransient<ICustomerService, CustomerService>();
-builder.Services.AddAutoMapper(typeof(EntitiesProfile));
+builder.Services.AddScoped<IProductService,ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IOrderService,OrderService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+
+
+/*ICartService cartService = null;*/
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddScoped(sp => CartService.GetShopCart(sp));
+
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context =
+        scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+    context.Database.EnsureCreated();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -40,8 +51,15 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapControllerRoute(
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllerRoute(
+      name: "Admin",
+      pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+    endpoints.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Product}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+});
 
 app.Run();

@@ -51,10 +51,10 @@ namespace Services.EntitiesServices.ProductServices
             return product;
         }
 
-        public async Task<List<GetProductByJoinCategory>> GetProductsByJoinCategories()
+        public async Task<List<GetProductsByJoinCategories>> GetProductsByJoinCategories()
         {
-            var items =
-                       await(from p in _context.Products
+            var items 
+                 /*    await(from p in _context.Products
                        join c in _context.Categories on p.CategoryId equals c.Id
                        select new GetProductByJoinCategory
                        {
@@ -64,17 +64,29 @@ namespace Services.EntitiesServices.ProductServices
                            Image=p.Image,
                            CategoryName = c.Name,
                            Description=c.Description
-                       }).ToListAsync();
+                       }).ToListAsync();*/
+           
+
+                       = await _context.Products
+                        .Join(_context.Categories,
+                         product => product.CategoryId,
+                         category => category.Id,
+                         (product,category)
+                          => new GetProductsByJoinCategories
+                          {
+                              Id = product.Id,
+                              Name = product.Name,
+                              Price = product.Price,
+                              Image = product.Image,
+                              CategoryName = category.Name,
+                              Description = category.Description
+                          }).ToListAsync();
             return items;
         }
 
         public async Task<List<Product>> GetProductsAsync()
         {
-            var products =
-                         await _context.Products
-                               .Include(x => x.Category)
-                               .ToListAsync();
-
+            var products =await _context.Products.ToListAsync();
             return products;
         }
 
@@ -85,10 +97,14 @@ namespace Services.EntitiesServices.ProductServices
 
             if (p == null) return 0;
 
-            p.Name = product.Name;
+            /*p.Name = product.Name;
             p.Price = product.Price;
             p.Image = product.Image;
-            p.CategoryId = product.CategoryId;
+            p.CategoryId = product.CategoryId;*/
+
+           // _context.Update<Product>(product);
+
+            _context.Set<Product>().Update(product);
 
             var x = await _context.SaveChangesAsync();
 

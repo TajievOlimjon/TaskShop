@@ -33,6 +33,7 @@ namespace Services.EntitiesServices.CartServices
 
             return new CartService(context) { CartId = CartId };
         }
+
         public async Task<List<Cart>> GetAllCarts()
         {
             var carts = await _context.Carts
@@ -41,6 +42,7 @@ namespace Services.EntitiesServices.CartServices
                         .ToListAsync();
             return carts;
         }
+
         public async Task<int> AddToCart(int id,int range)
         {
             if (id == 0) return 0;

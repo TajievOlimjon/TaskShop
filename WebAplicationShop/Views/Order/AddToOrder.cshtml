@@ -1,0 +1,51 @@
+﻿@model Customer
+
+<div class="row">
+    <h3>Добавить нового товара</h3>
+    <form asp-action="AddToOrder" asp-controller="Order" method="post" class="form-horizontal" asp-antiforgery="true" enctype="multipart/form-data">
+        <div class="form-group">
+            <label asp-for="FirstName"><b>Имя</b></label>
+            <div class="col-md-5">
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="LastName"><b>Фамилия</b></label>
+            <div class="col-md-5">
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Age"><b>Возраст</b></label>
+            <div class="col-md-5">
+                <input type="text" asp-for="Age" class="form-control"/>
+                <span asp-validation-for="Age" ></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="PhoneNumber"><b>Телефон номер</b></label>
+            <div class="col-md-5">
+                <input type="text" asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Email"><b>Электронная почта</b></label>
+            <div class="col-md-5">
+                <input type="text" asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="Gender"><b>Пол</b></label>
+            <div class="col-md-5">
+                <input type="text" asp-for="Gender" class="form-control" />
+                <span asp-validation-for="Gender"></span>
+            </div>
+        </div>
+        <input class="btn btn-success" type="submit" value="Добавить" /> 
+        <a asp-action="Index" asp-controller="Product" class="btn btn-secondary">Отменить</a>
+    </form>
+</div>

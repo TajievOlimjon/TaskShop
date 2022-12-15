@@ -1,0 +1,19 @@
+﻿@model List<Cart>
+
+<div class="container">
+
+    @foreach (var item in Model)
+    {
+        <div class="alert alert-warning mt-20">
+            <input type="hidden" asp-for="@item.Product.Id" />
+            <b>Названия:</b>@item.Product.Name<br />
+            <b content="TJS">Цена:</b>@item.Product.Price c.<br />
+            <b>Рассрочка:</b>@item.Range месяцев.<br />
+            <b>Сумма рассрочки:</b>@item.SumInstallment c.
+        </div>
+    }
+    <hr />
+
+    <a class="btn btn-danger" asp-controller="Order" asp-action="AddToOrder">Заказать</a>
+
+</div>

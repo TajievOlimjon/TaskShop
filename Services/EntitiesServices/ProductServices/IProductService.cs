@@ -1,11 +1,5 @@
 ﻿using Domain.DTOs.ProductDTOs;
-using Domain.EntitesDto;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services.EntitiesServices.ProductServices
 {
@@ -17,6 +11,6 @@ namespace Services.EntitiesServices.ProductServices
         Task<int> UpdateProductAsync(Product product);
         Task<int> DeleteProductAsync(int id);
         Task<Product> GetCategoryProductById(int id);
-        Task<List<GetProductByJoinCategory>> GetProductsByJoinCategories();
+        Task<List<GetProductsByJoinCategories>> GetProductsByJoinCategories();
     }
 }

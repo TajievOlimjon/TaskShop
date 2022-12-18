@@ -11,10 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<ApplicationContext>(option =>
-          option.UseNpgsql(
-              builder.Configuration.GetConnectionString("DefaultConnection")
-              ));
+string connection = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(connection));
+
 
 builder.Services.AddScoped<IProductService,ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -23,8 +22,8 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 
 /*ICartService cartService = null;*/
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-builder.Services.AddScoped(sp => CartService.GetShopCart(sp));
+builder.Services.AddTransient<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddTransient(sp => CartService.GetShopCart(sp));
 
 
 var app = builder.Build();
